@@ -1,0 +1,28 @@
+name: Trigger Build on Vault Update (Webhook)
+
+# 此 Workflow 用于：当 Gitee vault 仓库有更新时，通过 Gitee WebHook 触发此构建
+# 配置方式：
+#   Gitee 仓库 → 管理 → WebHooks → 添加 WebHook
+#   URL: https://api.github.com/repos/{YOUR_GITHUB_USER}/{YOUR_QUARTZ_REPO}/dispatches
+#   Secret: 在 GitHub Actions Secrets 中设置 WEBHOOK_SECRET
+#   触发事件：Push
+
+on:
+  repository_dispatch:
+    types: [gitee-vault-push]
+
+jobs:
+  trigger-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger sync-and-build workflow
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'sync-and-build.yml',
+              ref: 'v4'
+            });
+            console.log('✅ sync-and-build workflow triggered');

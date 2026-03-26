@@ -2,23 +2,25 @@ import { QuartzConfig } from "./quartz/cfg"
 import * as Plugin from "./quartz/plugins"
 
 /**
- * Quartz 4 Configuration
- *
- * See https://quartz.jzhao.xyz/configuration for more information.
+ * Quartz 4 配置文件
+ * 文档：https://quartz.jzhao.xyz/configuration
  */
 const config: QuartzConfig = {
   configuration: {
-    pageTitle: "Quartz 4",
+    pageTitle: "我的知识库",
     pageTitleSuffix: "",
     enableSPA: true,
     enablePopovers: true,
-    analytics: {
-      provider: "plausible",
-    },
-    locale: "en-US",
-    baseUrl: "quartz.jzhao.xyz",
-    ignorePatterns: ["private", "templates", ".obsidian"],
-    defaultDateType: "modified",
+    analytics: null,
+    locale: "zh-CN",
+    baseUrl: "your-name.pages.dev",   // ← 替换为你的 Cloudflare Pages 域名
+    ignorePatterns: [
+      "private",
+      "templates",
+      ".obsidian",
+      "00-Inbox",    // 收件箱不发布
+    ],
+    defaultDateType: "created",
     theme: {
       fontOrigin: "googleFonts",
       cdnCaching: true,
@@ -35,7 +37,7 @@ const config: QuartzConfig = {
           darkgray: "#4e4e4e",
           dark: "#2b2b2b",
           secondary: "#284b63",
-          tertiary: "#84a59d",
+          tertiary: "#84a98c",
           highlight: "rgba(143, 159, 169, 0.15)",
           textHighlight: "#fff23688",
         },
@@ -46,7 +48,7 @@ const config: QuartzConfig = {
           darkgray: "#d4d4d4",
           dark: "#ebebec",
           secondary: "#7b97aa",
-          tertiary: "#84a59d",
+          tertiary: "#84a98c",
           highlight: "rgba(143, 159, 169, 0.15)",
           textHighlight: "#b3aa0288",
         },
@@ -57,7 +59,7 @@ const config: QuartzConfig = {
     transformers: [
       Plugin.FrontMatter(),
       Plugin.CreatedModifiedDate({
-        priority: ["frontmatter", "git", "filesystem"],
+        priority: ["frontmatter", "filesystem"],
       }),
       Plugin.SyntaxHighlighting({
         theme: {
@@ -86,10 +88,7 @@ const config: QuartzConfig = {
       }),
       Plugin.Assets(),
       Plugin.Static(),
-      Plugin.Favicon(),
       Plugin.NotFoundPage(),
-      // Comment out CustomOgImages to speed up build time
-      Plugin.CustomOgImages(),
     ],
   },
 }

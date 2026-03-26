@@ -1,0 +1,75 @@
+name: Sync Vault & Build Quartz Site
+
+on:
+  # 手动触发
+  workflow_dispatch:
+  # 定时触发：每小时同步一次（UTC时间，北京时间+8）
+  schedule:
+    - cron: "0 * * * *"
+  # 推送到 main 分支时触发
+  push:
+    branches:
+      - v4
+
+jobs:
+  sync-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      # 1. 检出当前 Quartz 仓库
+      - name: Checkout Quartz repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2. 从 Gitee 同步 vault 内容
+      - name: Sync vault from Gitee
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+          GITEE_USERNAME: ${{ secrets.GITEE_USERNAME }}
+          GITEE_REPO: ${{ secrets.GITEE_REPO }}
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+
+          # 克隆 Gitee vault 仓库
+          git clone "https://${GITEE_USERNAME}:${GITEE_TOKEN}@gitee.com/${GITEE_USERNAME}/${GITEE_REPO}.git" /tmp/vault
+
+          # 清空并替换 content 目录（Quartz 内容目录）
+          rm -rf content/
+          mkdir -p content/
+
+          # 复制 vault 内容（排除 Obsidian 配置）
+          rsync -av \
+            --exclude='.obsidian/' \
+            --exclude='.git/' \
+            --exclude='.gitignore' \
+            --exclude='00-Inbox/' \
+            /tmp/vault/ content/
+
+          echo "✅ Vault 内容同步完成"
+          ls -la content/
+
+      # 3. 安装 Node.js 和依赖
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. 构建 Quartz 静态网站
+      - name: Build Quartz site
+        run: npx quartz build
+
+      # 5. 部署到 Cloudflare Pages（通过 Wrangler）
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy public --project-name=my-knowledge-base --commit-dirty=true

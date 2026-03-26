@@ -1,3 +1,78 @@
 @use "./base.scss";
 
 // put your custom CSS here!
+// ============================================================
+// 自定义样式 - 增强图文展示效果（类小红书卡片风格）
+// 将此文件内容追加到 quartz/styles/custom.scss
+// ============================================================
+
+// 图片卡片风格
+.center img,
+article img {
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  max-width: 100%;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+article img:hover {
+  transform: scale(1.01);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+// 图片网格布局（多图并列）
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  margin: 1rem 0;
+}
+
+// Callout 卡片样式增强
+.callout {
+  border-radius: 12px;
+  border-left-width: 4px;
+}
+
+// 标签样式
+.tag-link {
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-size: 0.8em;
+  font-weight: 500;
+  background: var(--highlight);
+  transition: background 0.15s;
+}
+
+.tag-link:hover {
+  background: var(--secondary);
+  color: var(--light);
+}
+
+// 文章卡片列表（文件夹页）
+.section-li {
+  border-radius: 12px;
+  padding: 12px 16px;
+  transition: background 0.15s;
+}
+
+.section-li:hover {
+  background: var(--highlight);
+}
+
+// 移动端优化
+@media (max-width: 600px) {
+  article img {
+    border-radius: 8px;
+  }
+
+  .callout {
+    border-radius: 8px;
+  }
+}
+
+// 知识图谱节点样式
+#graph-container {
+  border-radius: 12px;
+  overflow: hidden;
+}
