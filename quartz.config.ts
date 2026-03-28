@@ -13,7 +13,7 @@ const config: QuartzConfig = {
     enablePopovers: true,
     analytics: null,
     locale: "zh-CN",
-    baseUrl: "your-name.pages.dev",   // ← 替换为你的 Cloudflare Pages 域名
+    baseUrl: "my-knowledge-base-70l.pages.dev",
     ignorePatterns: [
       "private",
       "templates",
