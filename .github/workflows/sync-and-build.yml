@@ -31,14 +31,34 @@ jobs:
           GITEE_USERNAME: ${{ secrets.GITEE_USERNAME }}
           GITEE_REPO: ${{ secrets.GITEE_REPO }}
         run: |
+          set -e
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
+          # 降低 GitHub Actions → Gitee 跨国链路「Connection reset by peer」概率
+          git config --global http.version HTTP/1.1
+          git config --global http.postBuffer 524288000
+          git config --global http.lowSpeedLimit 1000
+          git config --global http.lowSpeedTime 600
 
-          # 克隆 Gitee vault 仓库（必须指定分支：默认 clone 会检出 Gitee「默认分支」，
-          # 若默认是 master 而你在 main 上推送，会导致站点永远拿不到新内容）
-          git clone --branch main --single-branch \
-            "https://${GITEE_USERNAME}:${GITEE_TOKEN}@gitee.com/${GITEE_USERNAME}/${GITEE_REPO}.git" \
-            /tmp/vault
+          CLONE_URL="https://${GITEE_USERNAME}:${GITEE_TOKEN}@gitee.com/${GITEE_USERNAME}/${GITEE_REPO}.git"
+          MAX_ATTEMPTS=6
+          DELAY_SEC=25
+          attempt=1
+          while [ "$attempt" -le "$MAX_ATTEMPTS" ]; do
+            echo ">>> Gitee clone 尝试 $attempt/$MAX_ATTEMPTS（浅克隆 main，减少传输量）"
+            rm -rf /tmp/vault
+            if git clone --branch main --single-branch --depth 1 "$CLONE_URL" /tmp/vault; then
+              echo ">>> Gitee clone 成功"
+              break
+            fi
+            if [ "$attempt" -eq "$MAX_ATTEMPTS" ]; then
+              echo "::error::多次从 Gitee clone 失败。常见原因：跨国网络抖动、Gitee 限流。可选：在 GitHub 建 vault 镜像仓库，本步骤改为 clone GitHub。"
+              exit 1
+            fi
+            echo ">>> ${DELAY_SEC}s 后重试..."
+            sleep "$DELAY_SEC"
+            attempt=$((attempt + 1))
+          done
 
           # 清空并替换 content 目录（Quartz 内容目录）
           rm -rf content/
